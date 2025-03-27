@@ -1,6 +1,6 @@
 <?php
 namespace App\Models;
-use App\Models\{Track, Instructor,CourseTopic};
+use App\Models\{Track, Instructor, CourseTopic, Enrollment};
 use App\traits\UsesUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -33,4 +33,9 @@ class Course extends Model
     {
         return $this->hasMany(CourseTopic::class);
     }
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+
 }

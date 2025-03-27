@@ -12,7 +12,7 @@ class VerifyEmail extends Mailable
     public function __construct($user)
     {
         $this->user = $user;
-        $this->verificationUrl = url('/api/user/verify-email/' . $this->user->verification_token);
+        $this->verificationUrl ='http://localhost:8000/api/user/verify-email/'.$this->user->verification_token ;
     }
     public function build()
     {

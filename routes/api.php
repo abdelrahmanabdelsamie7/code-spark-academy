@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\API\{TrackController,InstructorController,CourseController,CourseTopicController};
+use App\Http\Controllers\API\{TrackController,InstructorController,CourseController,CourseTopicController,EnrollmentController};
 use App\Http\Controllers\{AuthUserController, AuthAdminController};
  Route::prefix('user')->group(function () {
         // Public routes (no auth required)
@@ -25,6 +25,8 @@ Route::apiResource('tracks' , TrackController::class);
 Route::apiResource('instructors' , InstructorController::class);
 Route::apiResource('courses' , CourseController::class);
 Route::apiResource('course-topics' , CourseTopicController::class);
+Route::apiResource('enrollments' , EnrollmentController::class);
 Route::match(['post', 'put', 'patch'], 'tracks/{id}', [TrackController::class, 'update']);
 Route::match(['post', 'put', 'patch'], 'instructors/{id}', [InstructorController::class, 'update']);
 Route::match(['post', 'put', 'patch'], 'courses/{id}', [CourseController::class, 'update']);
+Route::match(['post', 'put', 'patch'], 'enrollments/{id}', [CourseController::class, 'update']);

@@ -51,7 +51,7 @@ class AuthUserController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->errors()->toJson(), 400);
         }
-        $verificationToken = Str::random(60);
+        $verificationToken = bin2hex(random_bytes(30));
         $user = User::create([
             'name' => $request->get('name'),
             'email' => $request->get('email'),
@@ -67,7 +67,11 @@ class AuthUserController extends Controller
     }
     public function verifyEmail($token)
     {
+        if (empty($token)) {
+            return response()->json(['error' => 'Verification token is required'], 400);
+        }
         $user = User::where('verification_token', $token)
+            ->whereNull('email_verified_at')
             ->where('verification_token_expires_at', '>', now())
             ->first();
         if (!$user) {
@@ -76,8 +80,18 @@ class AuthUserController extends Controller
         $user->email_verified_at = now();
         $user->verification_token = null;
         $user->verification_token_expires_at = null;
-        $user->save();
-        return response()->json(['message' => 'Email verified successfully , Start Now Go To Login'], 200);
+        if (!$user->save()) {
+            return response()->json(['error' => 'Failed to verify email. Please try again.'], 500);
+        }
+        return response()->json([
+            'message' => 'Email verified successfully. You can now log in.',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'email_verified_at' => $user->email_verified_at
+            ]
+        ], 200);
     }
     public function resendVerification(Request $request)
     {
