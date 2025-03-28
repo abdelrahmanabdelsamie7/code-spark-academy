@@ -2,17 +2,19 @@
 namespace App\Http\Controllers\API;
 use App\Models\Enrollment;
 use App\traits\ResponseJsonTrait;
+use App\Mail\EnrollmentStatusMail;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Mail;
 use App\Http\Requests\enrollment\StoreEnrollmentRequest;
 use App\Http\Requests\enrollment\UpdateEnrollmentRequest;
-use Illuminate\Support\Facades\File;
 
 class EnrollmentController extends Controller
 {
     use ResponseJsonTrait;
     public function __construct()
     {
-        $this->middleware('auth:admins')->only(['store', 'update', 'destroy']);
+        $this->middleware('auth:admins')->only(['index', 'update', 'destroy']);
 
     }
     public function index()
@@ -35,14 +37,18 @@ class EnrollmentController extends Controller
     }
     public function show(string $id)
     {
-        $enrollment = Enrollment::findOrFail($id);
+        $enrollment = Enrollment::with(['user:id,name,phone', 'course:id,title,price,discount,status'])->findOrFail($id);
         return $this->sendSuccess('Enrollment Retrieved Successfully!', $enrollment);
     }
     public function update(UpdateEnrollmentRequest $request, string $id)
     {
         $enrollment = Enrollment::findOrFail($id);
         $data = $request->validated();
+        $oldStatus = $enrollment->payment_status;
         $enrollment->update($data);
+        if (isset($data['payment_status']) && $data['payment_status'] !== $oldStatus) {
+            Mail::to($enrollment->user->email)->send(new EnrollmentStatusMail($enrollment));
+        }
         return $this->sendSuccess('Enrollment Updated Successfully!', $enrollment, 200);
     }
     public function destroy($id)
